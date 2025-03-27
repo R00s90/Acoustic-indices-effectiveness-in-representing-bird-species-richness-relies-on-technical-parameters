@@ -22,7 +22,7 @@ progress_bar <- function(n, iteration, width){
 }
 
 #' ### ___read data from csv ___
-all <- read.csv("R_Output/ai_richness.csv")
+all <- read.csv("my_data.csv")
 
 #'### ____group habitat variables___###
 
