@@ -4,7 +4,7 @@ library(interactions)
 library(lmerTest)
 
 #' _____progress bar___
-#' Because some of the LOOPs take quite long, a progress bar is informative
+#' Because some of the LOOPs take quite long, a progress bar can be informative
 #' After the example from: https://stackoverflow.com/questions/26919787/r-text-progress-bar-in-for-loop
 
 progress_bar <- function(n, iteration, width){
@@ -20,7 +20,7 @@ progress_bar <- function(n, iteration, width){
 }
 
 #' ### ___read data from csv ___
-all <- read.csv("R_Output/ai_richness.csv")
+all <- read.csv("my_file.csv")
 
 #'### ____group habitat variables___###
 
@@ -57,7 +57,7 @@ for(i in 1:length(all_list)){
 sd(all_scaled$value_scaled) 
 mean(all_scaled$value_scaled)
 
-#'## ____ model general LOOP_____#####
+#'## ____ LOOP: model each combination of index, sampling rate and FFT window size_____#####
 #  create a list of each dataset to be used in a model (splitted by index, sampling.rate, fft_w)
 all_list <- all_scaled %>% split(f = list(all_scaled$index, all_scaled$sampling.rate, all_scaled$fft_w, all_scaled$settings), drop = T)
 
