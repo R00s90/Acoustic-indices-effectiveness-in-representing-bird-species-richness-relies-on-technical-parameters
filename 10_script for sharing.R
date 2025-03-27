@@ -7,7 +7,6 @@ library(lmerTest)
 #' Because some of the LOOPs take quite long, a progress bar is informative
 #' After the example from: https://stackoverflow.com/questions/26919787/r-text-progress-bar-in-for-loop
 
-
 progress_bar <- function(n, iteration, width){
   ii <- iteration
   extra <- nchar('||100%')
@@ -59,8 +58,7 @@ sd(all_scaled$value_scaled)
 mean(all_scaled$value_scaled)
 
 #'## ____ model general LOOP_____#####
-##' create a list of each dataset to be used in a model (splitted by index, sampling.rate, fft_w)
-##' 
+#  create a list of each dataset to be used in a model (splitted by index, sampling.rate, fft_w)
 all_list <- all_scaled %>% split(f = list(all_scaled$index, all_scaled$sampling.rate, all_scaled$fft_w, all_scaled$settings), drop = T)
 
 # an empty df to store the output of the loop
@@ -101,6 +99,7 @@ for(i in 1:length(all_list)){
                         habitat,
                         n)
   
+  # rbind to the empty df created outside of the model
   model_out_general <- rbind(model_out_general, df_temp)
   
   # Progress bar
@@ -118,32 +117,56 @@ model_out_general_2 <- model_out_general%>%
          index = recode(index, acoustic_complexity = "Acoustic complexity", bioacoustic_index = "Bioacoustic index"))
 
 #'## __________plot_______________####
+
+# modify df to prepare data for plotting
 df_plot <- model_out_general_2 %>% 
   mutate(sampling.rate = paste(sampling.rate/1000, "kHz") %>% as.factor()) %>% 
   mutate(sampling.rate = fct_relevel(sampling.rate, c("24 kHz",  "48 kHz",  "96 kHz", "192 kHz")))
 
 p <- ggplot(data = df_plot, 
+            
+            # general aesthetics
             aes(x = estimate, 
                 y = fft_w %>% as.factor(),
                 shape = settings,
                 colour = pos_neg,
                 alpha = effect)) +
+  
+  # Create facets for each sampling rate and each index
   facet_grid(cols = vars(sampling.rate), rows = vars(index)) +
-  # geom_path(aes(group = settings, linetype = settings), alpha = 1, colour = "black") +
+  
+  # add lines for error bars based on the 95% confidence intervals, dodged to avoid overlap
   geom_errorbar(aes(xmin = low_ci, 
                     xmax = up_ci), 
                 width = 0,
                 position = position_dodgev(height=0.5))+
+  
+  # add points of each model effect, dodged to avoid overlap
   geom_point(
     size = 2,
     position = position_dodgev(height=0.5)) +
+  
+  # add a vertical line indicating no effect (i.e. effect = 0)
   geom_vline(xintercept = 0,  colour = "grey30", linewidth = 1) +
+  
+  # set the transparancy values to distinguish between significant and unsignificant effects
   scale_alpha_manual(values = c(0.3, 1), name = NULL) +
-  scale_linetype_discrete(name = NULL) +
+  
+  # remove name from the shape legend
   scale_shape_discrete(name = NULL) +
+  
+  # remove name from the colour legend and set the colour values
   scale_color_manual(name = NULL, values = c("hotpink2", "royalblue4")) +
-  scale_x_continuous(n.breaks = 3, breaks = c(-0.1, 0, 0.1), name = "Model estimate", limits = c(-0.1,0.12)) +
+  
+  # edit the x-axis
+  scale_x_continuous(n.breaks = 3, 
+                     breaks = c(-0.1, 0, 0.1), 
+                     name = "Model estimate", 
+                     limits = c(-0.1,0.12)) +
+  
+  # title of the y-axis
   ylab("FFT window size") +
-  # annotate(geom = "text", x = -0.02, y = 1.5, label = "no effect", angle = 90, size = 2.5, colour = "grey")+
+  
+  # black and white theme
   theme_bw()
 p
